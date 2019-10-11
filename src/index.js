@@ -13,7 +13,22 @@ function App() {
   // console.log("columns", columns);
   // console.log("columnOrder", columnOrder);
 
+  const onDragStart = () => {
+    document.body.style.color = "blue";
+    document.body.style.transition = "background-color 0.2s ease";
+  };
+
+  const onDragUpdate = update => {
+    const { destination } = update;
+    const opacity = destination
+      ? destination.index / Object.keys(tasks).length
+      : 0;
+    document.body.style.backgroundColor = `rgba(153, 141, 217, ${opacity})`;
+  };
+
   const onDragEnd = result => {
+    document.body.style.color = "inherit";
+    document.body.style.backgroundColor = "inherit";
     const { destination, source, draggableId } = result;
 
     console.log("destination", destination);
@@ -45,7 +60,11 @@ function App() {
   };
 
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
+    <DragDropContext
+      onDragEnd={onDragEnd}
+      onDragStart={onDragStart}
+      onDragUpdate={onDragUpdate}
+    >
       {columnOrder.map(columnId => {
         const column = columns[columnId];
         const tasksByColumn = column.taskIds.map(taskId => tasks[taskId]);

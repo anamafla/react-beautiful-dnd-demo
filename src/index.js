@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import ReactDOM from "react-dom";
 import styled from "styled-components";
-import { DragDropContext } from "react-beautiful-dnd";
+import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import initialData from "./initial-data";
 import Column from "./column";
 
@@ -34,11 +34,11 @@ function App() {
   const onDragEnd = result => {
     document.body.style.color = "inherit";
     document.body.style.backgroundColor = "inherit";
-    const { destination, source, draggableId } = result;
+    const { destination, source, draggableId, type } = result;
 
-    console.log("destination", destination);
-    console.log("source", source);
-    console.log("draggableId", draggableId);
+    //console.log("destination", destination);
+    //console.log("source", source);
+    //console.log("draggableId", draggableId);
 
     if (!destination) {
       return;
@@ -48,6 +48,15 @@ function App() {
       destination.droppableId === source.droppableId &&
       destination.index === source.index
     ) {
+      return;
+    }
+
+    if (type === "column") {
+      const newColumnOrder = Array.from(columnOrder);
+      newColumnOrder.splice(source.index, 1);
+      newColumnOrder.splice(destination.index, 0, draggableId);
+
+      setColumnOrder(newColumnOrder);
       return;
     }
 
@@ -100,23 +109,29 @@ function App() {
       onDragStart={onDragStart}
       onDragUpdate={onDragUpdate}
     >
-      <Container>
-        {columnOrder.map(columnId => {
-          console.log("columns:", columns);
-          const column = columns[columnId];
-          console.log("column:", column);
-          const tasksByColumn = column.taskIds.map(taskId => tasks[taskId]);
-          console.log("tasksByColumn:", tasksByColumn);
+      <Droppable droppableId="all-columns" direction="horizontal" type="column">
+        {provided => (
+          <Container {...provided.droppableProps} ref={provided.innerRef}>
+            {columnOrder.map((columnId, index) => {
+              console.log("columns:", columns);
+              const column = columns[columnId];
+              console.log("column:", column);
+              const tasksByColumn = column.taskIds.map(taskId => tasks[taskId]);
+              console.log("tasksByColumn:", tasksByColumn);
 
-          return (
-            <Column
-              key={column.id}
-              column={column}
-              tasksByColumn={tasksByColumn}
-            />
-          );
-        })}
-      </Container>
+              return (
+                <Column
+                  key={column.id}
+                  column={column}
+                  tasksByColumn={tasksByColumn}
+                  index={index}
+                />
+              );
+            })}
+            {provided.placeholder}
+          </Container>
+        )}
+      </Droppable>
     </DragDropContext>
   );
 }
